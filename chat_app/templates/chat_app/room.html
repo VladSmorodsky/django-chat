@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ chat.name }}{% endblock %}
+
+{% block content %}
+    <h2>{{ chat.name }}</h2>
+    <div id="chat-log" class="my-5 p-3">
+        {% for message in messages %}
+            <div class="card my-3">
+                <div class="card-header d-flex justify-content-between p-3">
+                    <p class="fw-bold mb-0">{{ message.user.email }}</p>
+                    <p class="text-muted small mb-0"><i
+                            class="far fa-clock"></i>{{ message.created_at|date:'H:i M d, Y' }}</p>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">
+                        {{ message.message }}
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="fixed-bottom d-flex p-1 bg-white">
+        <div class="flex-shrink-1 w-100">
+            <textarea id="chat-message-input" class="w-100 h-100 me-auto"
+                      style="overflow:hidden; resize:none"></textarea>
+        </div>
+        <div class="align-self-end">
+            <input id="chat-message-submit" type="button" value="Send">
+        </div>
+    </div>
+    {{ chat.id|json_script:"chat_id" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('chat_id').textContent);
+
+        const chatSocket = new WebSocket(
+            'wss://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+
+        const createMessageElement = (data) => {
+            const createMessageHeader = (data) => {
+                const messageHeader = document.createElement('div')
+                messageHeader.classList.add('card-header', 'd-flex', 'justify-content-between', 'p-3')
+
+                const usernameElement = document.createElement('p')
+                usernameElement.classList.add('fw-bold', 'mb-0')
+                usernameElement.appendChild(document.createTextNode(data.username))
+
+                const messageCreateAtElement = document.createElement('p')
+                messageCreateAtElement.classList.add('text-muted', 'small', 'mb-0')
+                messageCreateAtElement.appendChild(document.createTextNode(data.created_at))
+
+                messageHeader.appendChild(usernameElement)
+                messageHeader.appendChild(messageCreateAtElement)
+
+                return messageHeader
+            }
+
+            const createMessageBody = (data) => {
+                const messageBody = document.createElement('div')
+                messageBody.classList.add('card-body')
+
+                const messageTextElement = document.createElement('p')
+                messageTextElement.classList.add('mb-0')
+                messageTextElement.appendChild(document.createTextNode(data.message))
+
+                messageBody.appendChild(messageTextElement)
+
+                return messageBody
+            }
+
+            const messageElement = document.createElement('div')
+            messageElement.classList.add('card', 'my-3')
+            messageElement.appendChild(createMessageHeader(data))
+            messageElement.appendChild(createMessageBody(data))
+
+            return messageElement
+        }
+
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const messageElement = createMessageElement(data)
+            document.querySelector('#chat-log').appendChild(messageElement);
+        };
+
+        chatSocket.onclose = function (e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.onreadystatechange
+
+        document.querySelector('#chat-message-input').focus();
+        document.querySelector('#chat-message-input').onkeyup = function (e) {
+            if (e.key === 'Enter') {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function (e) {
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+{% endblock %}
