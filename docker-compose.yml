@@ -10,13 +10,14 @@ services:
 
   web:
     build: .
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:9000"
+    command: bash -c "python manage.py migrate && uvicorn --host 0.0.0.0 --port 9000 django_chat.asgi:application --reload"
     volumes:
       - .:/app
     env_file:
       - .env
     depends_on:
       - db
+      - redis
     ports:
       - '9000:9000'
     healthcheck:
@@ -24,6 +25,11 @@ services:
       interval: 60s
       timeout: 10s
       retries: 1
+
+  redis:
+    image: redis:7.4.2
+    ports:
+      - '6379:6379'
 
 volumes:
   chat_data: { }

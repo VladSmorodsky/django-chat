@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat Rooms{% endblock %}
+
+{% block content %}
+    <h2>Create New Chat</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Create Chat</button>
+    </form>
+    {% for chat in chat_list %}
+        <div>
+            <a href="{% url 'chat_room' chat.id %}">{{ chat.name }}</a>
+        </div>
+    {% endfor %}
+{% endblock %}

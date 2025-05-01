@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block page_title %} {{ auth_form_action|default:'Register' }} {% endblock %}
+
+{% block content %}
+    <div class="container my-5 py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                    <div class="card-body p-5 text-center">
+                        <h3 class="mb-5">{{ auth_form_action|default:'Register' }}</h3>
+                        <form method="post">
+                            {% csrf_token %}
+                            {% include 'chat_app/components/forms/form_content.html' with form=form %}
+                            <button data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-lg btn-block"
+                                    type="submit">{{ auth_form_action|default:'Register' }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

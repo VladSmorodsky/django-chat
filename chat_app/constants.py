@@ -1,0 +1,1 @@
+CHAT_NAME_PREFIX = 'chat_general_'
